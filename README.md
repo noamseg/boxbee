@@ -1,189 +1,328 @@
-# 🐝 BoxBee
+# 🐝 BoxBee - AI-Native Time-Boxing Productivity App
 
-**AI-native time-boxing productivity app for mobile**
-
-BoxBee helps you focus on what matters by breaking your day into manageable time-boxed tasks (called "boxes"). With AI-powered time estimation and personalized insights, BoxBee learns your work patterns and helps you become more productive over time.
+BoxBee is a modern productivity app that combines AI-powered insights with focused time-boxing to help you work smarter, not harder.
 
 ## ✨ Key Features
 
-- **⚡ Quick Box Creation** - Create time-boxed tasks in seconds using natural language
-- **🤖 AI Time Estimation** - Smart duration suggestions that improve as you work
-- **🎯 Focus Mode** - Distraction-free environment with beautiful hexagon-themed UI
-- **📊 Pattern Insights** - Learn when you're most productive and optimize your schedule
-- **📈 Weekly Reports** - Track your progress with AI-generated Hive Reports
-- **🐝 Bee Theme** - Modern, minimal design with honey colors and hexagon patterns
+### 📦 Smart Box Creation
+- Create focused work sessions ("boxes") with just a task name and duration
+- **AI-powered duration estimation** - Get intelligent time suggestions with reasoning
+- Natural language support (foundation ready)
+- Simple, distraction-free interface
 
-## 🏗️ Project Structure
+### ⏱️ Immersive Focus Mode
+- Beautiful countdown timer with progress visualization
+- Start/Pause/Resume controls
+- 5-minute warning notifications
+- App background handling (auto-pauses)
+- Motivational messages based on timer state
+
+### 🧘 Completion Reflection
+- Rate your focus quality (Great/Okay/Rough)
+- Track completion status (Completed/Partial/Skipped)
+- Add optional notes for learning
+- All data captured for insights
+
+### 📊 Weekly Analytics & Insights
+- **Track your streak** - Consecutive days with completed boxes
+- View key metrics: boxes completed, focus time, quality scores
+- **AI-powered personal insights** - Data-driven, actionable recommendations
+- Pattern recognition: best day/time to focus
+- Category tracking
+
+### 🤖 AI Integration
+- Smart time estimation with confidence levels
+- Task complexity analysis and breakdown suggestions
+- Personalized coaching based on your habits
+- Context-aware insights generation
+
+### ⚙️ Customizable Settings
+- Notification preferences (5-min warning, completion alerts, coaching)
+- AI assistant configuration (learning, auto-adjust, personality)
+- Theme options (light/dark/auto)
+- Account management
+
+## 🏗️ Tech Stack
+
+### Mobile App (React Native + Expo)
+- **Framework**: React Native 0.73+ with Expo
+- **Language**: TypeScript for type safety
+- **Navigation**: React Navigation (Stack + Bottom Tabs)
+- **State Management**: React Context API
+- **Storage**: Expo SecureStore for sensitive data
+- **UI**: Custom design system with honey/bee theme
+
+### Backend API (Node.js + Express)
+- **Runtime**: Node.js with TypeScript
+- **Framework**: Express.js
+- **Database**: PostgreSQL with Prisma ORM v7
+- **Authentication**: JWT with refresh tokens (30-day rotation)
+- **AI**: OpenAI GPT-4o-mini for smart features
+- **Email**: Nodemailer with SendGrid (production ready)
+- **Validation**: express-validator
+
+### AI & Analytics
+- **Model**: GPT-4o-mini (fast, cost-effective)
+- **Features**: Time estimation, task breakdown, insights generation
+- **Cost**: ~$0.001 per request, ~$30-50/month for 1000 users
+- **Fallbacks**: Graceful degradation when AI unavailable
+
+## 📁 Project Structure
 
 ```
 boxbee/
-├── mobile/              # React Native mobile app (iOS + Android)
-├── backend/             # Node.js/Express API with PostgreSQL
-├── design/              # Design system, screen specs, and assets
-│   ├── 01-Design-System.md
-│   ├── 02-Screen-Specifications.md
-│   └── 03-Asset-Requirements.md
-├── development/         # Development planning and documentation
-│   ├── 01-Epic-Breakdown.md
-│   ├── 02-User-Stories-Sprint-Ready.md
-│   ├── 03-Sprint-Planning-Guide.md
-│   └── README.md
-├── BoxBee-PRD.md       # Complete Product Requirements Document
-└── BoxBee-Project-Brief.md  # Strategic overview
+├── backend/                 # Node.js API server
+│   ├── prisma/             # Database schema & migrations
+│   ├── src/
+│   │   ├── controllers/    # Request handlers
+│   │   ├── services/       # Business logic (AI, insights, email)
+│   │   ├── routes/         # API endpoints
+│   │   ├── middleware/     # Auth, error handling
+│   │   └── utils/          # Helper functions
+│   └── AI_SETUP.md        # OpenAI configuration guide
+│
+├── mobile/                 # React Native mobile app
+│   ├── src/
+│   │   ├── components/     # Reusable UI components
+│   │   ├── screens/        # App screens (auth, main, onboarding, focus)
+│   │   ├── navigation/     # Navigation configuration
+│   │   ├── services/       # API client services
+│   │   ├── contexts/       # React Context providers
+│   │   ├── types/          # TypeScript type definitions
+│   │   └── constants/      # Theme, colors, typography
+│   └── App.tsx            # Root component
+│
+└── design/                 # Design system & specifications
+    ├── 01-Design-System.md
+    ├── 02-Screen-Specifications.md
+    └── ...
 ```
 
-## 🚀 Quick Start
+## 🚀 Getting Started
 
 ### Prerequisites
-
-- Node.js 18+
-- PostgreSQL 14+
-- React Native development environment (for mobile)
-- OpenAI API key (for AI features)
+- Node.js 18+ and npm
+- PostgreSQL database
+- OpenAI API key (optional, for AI features)
+- Expo CLI: `npm install -g expo-cli`
 
 ### Backend Setup
 
-```bash
-cd backend
-npm install
-cp .env.example .env
-# Edit .env with your database credentials
-npm run db:migrate
-npm run dev
-```
+1. **Navigate to backend directory**
+   ```bash
+   cd backend
+   ```
 
-See [backend/README.md](backend/README.md) for detailed setup instructions.
+2. **Install dependencies**
+   ```bash
+   npm install
+   ```
+
+3. **Configure environment**
+   ```bash
+   cp .env.example .env
+   # Edit .env with your database URL, JWT secret, and optionally OpenAI API key
+   ```
+
+4. **Run database migrations**
+   ```bash
+   npx prisma migrate dev
+   ```
+
+5. **Start the server**
+   ```bash
+   npm run dev
+   ```
+   Server runs on http://localhost:3000
 
 ### Mobile App Setup
 
-```bash
-cd mobile
-npm install
-npm start
-```
+1. **Navigate to mobile directory**
+   ```bash
+   cd mobile
+   ```
 
-Then press `i` for iOS simulator or `a` for Android emulator.
+2. **Install dependencies**
+   ```bash
+   npm install
+   ```
 
-See [mobile/README.md](mobile/README.md) for detailed setup instructions.
+3. **Configure API endpoint**
+   Update `src/services/api.service.ts` with your backend URL
 
-## 📱 Tech Stack
+4. **Start Expo**
+   ```bash
+   npm start
+   ```
+   Scan QR code with Expo Go app (iOS/Android)
 
-### Mobile App
-- **Framework:** React Native 0.73+ with Expo
-- **Language:** TypeScript
-- **UI:** Custom bee-themed design system
-- **State:** React Context + hooks
-- **Storage:** SQLite (offline-first)
-- **Navigation:** React Navigation
+## 🔑 AI Features Setup
 
-### Backend
-- **Runtime:** Node.js with TypeScript
-- **Framework:** Express.js
-- **Database:** PostgreSQL with Prisma ORM
-- **Auth:** JWT + bcrypt
-- **AI:** OpenAI GPT-4o-mini
+See [backend/AI_SETUP.md](backend/AI_SETUP.md) for detailed instructions on:
+- Getting an OpenAI API key
+- Configuring environment variables
+- Understanding AI features and costs
+- Testing AI endpoints
 
-### Infrastructure (Future)
-- **Hosting:** Railway/Heroku (backend), Expo EAS (mobile)
-- **Monitoring:** Sentry
-- **Analytics:** Mixpanel/Amplitude
-- **Payments:** RevenueCat (In-App Purchases)
+**Note**: App works perfectly without AI - features gracefully degrade to manual operation.
 
-## 📋 Development Roadmap
+## 📱 User Flow
 
-### ✅ Sprint 1 (Weeks 1-2) - Foundation [COMPLETED]
-- [x] Project setup and repository
-- [x] Backend infrastructure (Express + PostgreSQL)
-- [x] Database schema with Prisma
-- [x] Basic authentication (JWT)
-- [x] React Native mobile app initialization
+1. **Onboarding** (new users)
+   - Welcome screens explaining BoxBee features
+   - Notification permissions request
+   - Interactive first box creation tutorial
 
-### 🔄 Sprint 2 (Weeks 3-4) - Auth Complete
-- [ ] Social login (Google + Apple)
-- [ ] Email verification
-- [ ] Navigation structure
-- [ ] Offline storage (SQLite)
+2. **Create a Box**
+   - Enter task name
+   - Get AI duration suggestion (optional)
+   - Select or adjust duration
+   - Create and it appears in Today view
 
-### 📦 Sprint 3-4 (Weeks 5-8) - Core Loop
-- [ ] Onboarding flow
-- [ ] Box creation (manual, no AI yet)
-- [ ] Focus mode with timer
-- [ ] Completion reflection
+3. **Focus Mode**
+   - Tap box to start
+   - Immersive timer with large display
+   - Progress ring visualization
+   - Pause/resume as needed
 
-### 🤖 Sprint 5-6 (Weeks 9-12) - AI Integration
-- [ ] OpenAI API integration
-- [ ] Natural language task parsing
-- [ ] AI time estimation
-- [ ] Learning from completion history
+4. **Reflect**
+   - Timer completes → Reflection screen
+   - Rate focus quality
+   - Mark completion status
+   - Add optional notes
 
-### 📊 Sprint 7-8 (Weeks 13-16) - Dashboard & Insights
-- [ ] Today View dashboard
-- [ ] Pattern recognition
-- [ ] Weekly Hive Report
-- [ ] Subscription management (RevenueCat)
+5. **Track Progress**
+   - View weekly stats in Insights tab
+   - See productivity patterns
+   - Get personalized AI coaching
+   - Track your streak
 
-### 🎨 Sprint 9-10 (Weeks 17-20) - Polish & Launch
-- [ ] P1 features (celebrations, presets, coaching)
-- [ ] Beta testing (50-100 users)
-- [ ] App store submission (iOS + Android)
-- [ ] Marketing materials
+## 🎨 Design System
 
-See [development/03-Sprint-Planning-Guide.md](development/03-Sprint-Planning-Guide.md) for detailed sprint breakdown.
+BoxBee uses a carefully crafted **honey/bee theme**:
 
-## 📐 Design System
+- **Primary Color**: Honey (#F5A623) - CTAs, accents
+- **Backgrounds**: Honeycream (#FFF5E1) - soft highlights
+- **Text**: Bee Black (#1A1A1A) - high contrast
+- **Typography**: Inter for UI, JetBrains Mono for timer
+- **Spacing**: 8-point grid system
+- **Metaphor**: Hexagons (bees) + Boxes (time-boxing)
 
-BoxBee uses a modern, minimal design with bee/honey/hexagon theme:
+## 📋 Development Status
 
-- **Colors:** Honey spectrum (#FDB44B, #F5A623, #E69500) + bee black/white
-- **Typography:** Inter (UI) + JetBrains Mono (timer)
-- **Spacing:** 8-point grid system
-- **Icons:** Custom hexagonal icons with honey accents
-- **Animations:** Honey drip, hexagon fill, breathing backgrounds
+### ✅ Sprint 1 - Infrastructure & Auth (COMPLETE)
+- [x] Backend setup (Node.js + Express + TypeScript)
+- [x] PostgreSQL database with Prisma ORM
+- [x] JWT authentication with refresh tokens
+- [x] Mobile app initialization (React Native + Expo)
+- [x] Email verification backend
+- [x] Design system implementation
 
-See [design/01-Design-System.md](design/01-Design-System.md) for implementation details.
+### ✅ Sprint 2 - Navigation & Screens (COMPLETE)
+- [x] React Navigation setup (Stack + Bottom Tabs)
+- [x] Authentication screens (Welcome, Signup, Login)
+- [x] Main app screens (Today, Insights, Settings)
+- [x] AuthContext for global state
+- [x] API service layer with interceptors
 
-## 🎯 Success Metrics
+### ✅ Sprint 3 - Core Loop (COMPLETE)
+- [x] Onboarding flow (4 screens)
+- [x] Box creation modal
+- [x] Box CRUD endpoints
+- [x] Focus mode screen with timer
+- [x] Completion reflection modal
+- [x] Today View with box management
 
-**Activation:**
-- Onboarding completion: >70%
-- First box created: >65%
-- Time to first value: <5 minutes
+### ✅ Sprint 4 - AI Integration (COMPLETE)
+- [x] OpenAI GPT-4o-mini integration
+- [x] AI time estimation with confidence
+- [x] Task breakdown suggestions
+- [x] Natural language parsing foundation
+- [x] AI-powered coaching messages
+- [x] CreateBoxModal AI features
 
-**Engagement:**
-- Boxes per week: >15
-- Completion rate: >75%
-- DAU/MAU: >30%
+### ✅ Sprint 5 - Insights & Analytics (COMPLETE)
+- [x] Weekly statistics calculation
+- [x] Pattern recognition (day/time/category)
+- [x] Streak tracking
+- [x] AI-powered insights generation
+- [x] InsightsScreen with rich analytics
+- [x] Data visualization components
 
-**Retention:**
-- D7: >40%
-- D30: >25%
+### ✅ Sprint 6 - Settings & Polish (COMPLETE)
+- [x] Comprehensive settings screen
+- [x] Notification preferences UI
+- [x] AI assistant configuration
+- [x] Account management
+- [x] User settings backend
+- [x] App polish and UX improvements
 
-**Revenue:**
-- Trial-to-paid: >15%
-- Churn: <5%/month
+## 📄 API Documentation
 
-## 🤝 Contributing
+### Authentication
+- `POST /api/auth/signup` - Create account
+- `POST /api/auth/login` - Sign in
+- `GET /api/auth/me` - Get current user
+- `POST /api/auth/refresh` - Refresh access token
 
-This is a solo project, but contributions are welcome! Please read the PRD and development docs before contributing.
+### Email
+- `POST /api/email/send-verification` - Send verification email
+- `POST /api/email/verify` - Verify email with token
+- `POST /api/email/resend-verification` - Resend verification
 
-1. Fork the repository
-2. Create your feature branch (`git checkout -b feature/amazing-feature`)
-3. Commit your changes (`git commit -m 'Add amazing feature'`)
-4. Push to the branch (`git push origin feature/amazing-feature`)
-5. Open a Pull Request
+### Boxes
+- `POST /api/boxes` - Create box
+- `GET /api/boxes` - List boxes (with filters)
+- `GET /api/boxes/:id` - Get single box
+- `PATCH /api/boxes/:id` - Update box
+- `DELETE /api/boxes/:id` - Delete box
+- `POST /api/boxes/:id/start` - Start focus mode
+- `POST /api/boxes/:id/complete` - Complete with reflection
 
-## 📄 License
+### AI Features
+- `POST /api/ai/estimate-duration` - Get time estimation
+- `POST /api/ai/breakdown-task` - Break down complex task
+- `POST /api/ai/parse-task` - Parse natural language
+- `GET /api/ai/coaching-message` - Get personalized coaching
 
-MIT License - see LICENSE file for details
+### Insights
+- `GET /api/insights/weekly` - Weekly statistics
+- `GET /api/insights/ai-insights` - AI-generated insights
+
+### Settings
+- `GET /api/settings` - Get user settings
+- `PATCH /api/settings` - Update settings
+
+## 🔐 Security
+
+- Passwords hashed with bcrypt
+- JWT tokens with 7-day expiry
+- Refresh tokens with 30-day expiry + automatic rotation
+- Secure token storage (Expo SecureStore)
+- API key never exposed to frontend
+- CORS configured for security
+- Input validation on all endpoints
+
+## 🎯 Key Achievements
+
+- **Full-stack TypeScript** - Type safety across frontend and backend
+- **AI-powered features** - Smart, cost-effective OpenAI integration
+- **Beautiful UI** - Custom design system with honey/bee theme
+- **Complete user flow** - Onboarding → Create → Focus → Reflect → Insights
+- **Production-ready** - Error handling, validation, security best practices
+- **Graceful degradation** - Works perfectly without AI configured
 
 ## 🙏 Acknowledgments
 
-- Inspired by time-boxing methodology and productivity research
-- Bee mascot designed with modern minimalism in mind
-- Built with amazing open-source tools
+- Built with Claude Code (Anthropic)
+- Powered by OpenAI GPT-4o-mini
+- Inspired by time-boxing methodology
+- Design system influenced by modern productivity apps
+
+## 📝 License
+
+MIT License - feel free to use this project for learning and inspiration.
 
 ---
 
-**Made with 🐝 by the BoxBee team**
-
-*Time-box your day, accomplish more.*
+**Made with 🐝 and AI** • BoxBee v1.0.0 • © 2024

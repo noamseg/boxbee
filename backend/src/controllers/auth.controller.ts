@@ -1,6 +1,6 @@
 import { Request, Response, NextFunction } from 'express';
 import { validationResult } from 'express-validator';
-import prisma from '../utils/prisma';
+import { prisma } from '../config/database';
 import {
   hashPassword,
   comparePassword,

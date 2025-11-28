@@ -1,5 +1,5 @@
 import { Request, Response, NextFunction } from 'express';
-import prisma from '../utils/prisma';
+import { prisma } from '../config/database';
 import emailService from '../services/email.service';
 import { AppError } from '../middleware/error.middleware';
 
