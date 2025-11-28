@@ -1,7 +1,13 @@
 import { Request, Response, NextFunction } from 'express';
 import { validationResult } from 'express-validator';
 import prisma from '../utils/prisma';
-import { hashPassword, comparePassword, generateToken } from '../utils/auth.utils';
+import {
+  hashPassword,
+  comparePassword,
+  generateToken,
+  generateRefreshToken,
+  verifyRefreshToken,
+} from '../utils/auth.utils';
 import { AppError } from '../middleware/error.middleware';
 
 /**
@@ -57,17 +63,21 @@ export const signup = async (
       }
     });
 
-    // Generate JWT token
-    const token = generateToken({
+    // Generate JWT tokens
+    const accessToken = generateToken({
       userId: user.id,
       email: user.email
     });
+
+    // Generate refresh token
+    const refreshToken = await generateRefreshToken(user.id);
 
     res.status(201).json({
       success: true,
       data: {
         user,
-        token
+        token: accessToken,
+        refreshToken
       }
     });
   } catch (error) {
@@ -109,11 +119,14 @@ export const login = async (
       throw new AppError('Invalid email or password', 401);
     }
 
-    // Generate JWT token
-    const token = generateToken({
+    // Generate JWT tokens
+    const accessToken = generateToken({
       userId: user.id,
       email: user.email
     });
+
+    // Generate refresh token
+    const refreshToken = await generateRefreshToken(user.id);
 
     res.json({
       success: true,
@@ -125,7 +138,8 @@ export const login = async (
           emailVerified: user.emailVerified,
           createdAt: user.createdAt
         },
-        token
+        token: accessToken,
+        refreshToken
       }
     });
   } catch (error) {
@@ -166,6 +180,61 @@ export const getMe = async (
     res.json({
       success: true,
       data: { user }
+    });
+  } catch (error) {
+    next(error);
+  }
+};
+
+/**
+ * Refresh access token
+ * POST /api/auth/refresh
+ */
+export const refreshAccessToken = async (
+  req: Request,
+  res: Response,
+  next: NextFunction
+) => {
+  try {
+    const { refreshToken } = req.body;
+
+    if (!refreshToken) {
+      throw new AppError('Refresh token is required', 400);
+    }
+
+    // Verify refresh token
+    const userId = await verifyRefreshToken(refreshToken);
+
+    // Get user
+    const user = await prisma.user.findUnique({
+      where: { id: userId },
+      select: {
+        id: true,
+        email: true,
+        name: true,
+        emailVerified: true,
+      },
+    });
+
+    if (!user) {
+      throw new AppError('User not found', 404);
+    }
+
+    // Generate new access token
+    const newAccessToken = generateToken({
+      userId: user.id,
+      email: user.email,
+    });
+
+    // Optionally generate new refresh token (rotation)
+    const newRefreshToken = await generateRefreshToken(user.id);
+
+    res.json({
+      success: true,
+      data: {
+        token: newAccessToken,
+        refreshToken: newRefreshToken,
+      },
     });
   } catch (error) {
     next(error);

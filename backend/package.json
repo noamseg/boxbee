@@ -13,17 +13,24 @@
     "db:studio": "prisma studio",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
-  "keywords": ["boxbee", "productivity", "time-boxing", "ai"],
+  "keywords": [
+    "boxbee",
+    "productivity",
+    "time-boxing",
+    "ai"
+  ],
   "author": "BoxBee Team",
   "license": "MIT",
   "dependencies": {
     "@prisma/client": "^7.0.1",
+    "@types/nodemailer": "^7.0.4",
     "bcryptjs": "^3.0.3",
     "cors": "^2.8.5",
     "dotenv": "^17.2.3",
     "express": "^5.1.0",
     "express-validator": "^7.3.1",
     "jsonwebtoken": "^9.0.2",
+    "nodemailer": "^7.0.11",
     "prisma": "^7.0.1"
   },
   "devDependencies": {

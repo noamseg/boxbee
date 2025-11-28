@@ -1,6 +1,6 @@
 import { Router } from 'express';
 import { body } from 'express-validator';
-import { signup, login, getMe } from '../controllers/auth.controller';
+import { signup, login, getMe, refreshAccessToken } from '../controllers/auth.controller';
 import { authenticate } from '../middleware/auth.middleware';
 
 const router = Router();
@@ -56,5 +56,16 @@ router.post(
  * @access  Private
  */
 router.get('/me', authenticate, getMe);
+
+/**
+ * @route   POST /api/auth/refresh
+ * @desc    Refresh access token
+ * @access  Public
+ */
+router.post(
+  '/refresh',
+  [body('refreshToken').notEmpty().withMessage('Refresh token is required')],
+  refreshAccessToken
+);
 
 export default router;

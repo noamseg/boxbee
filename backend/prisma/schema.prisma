@@ -28,9 +28,11 @@ model User {
   updatedAt     DateTime  @updatedAt
 
   // Relations
-  boxes         Box[]
-  settings      UserSettings?
-  insights      Insight[]
+  boxes                    Box[]
+  settings                 UserSettings?
+  insights                 Insight[]
+  emailVerificationTokens  EmailVerificationToken[]
+  refreshTokens            RefreshToken[]
 
   @@map("users")
 }
@@ -132,4 +134,34 @@ model Insight {
   @@index([userId, type])
   @@index([userId, createdAt])
   @@map("insights")
+}
+
+// Email Verification Tokens
+model EmailVerificationToken {
+  id        String   @id @default(cuid())
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  token     String   @unique
+  expiresAt DateTime
+
+  createdAt DateTime @default(now())
+
+  @@index([token])
+  @@index([userId])
+  @@map("email_verification_tokens")
+}
+
+// Refresh Tokens for JWT rotation
+model RefreshToken {
+  id        String   @id @default(cuid())
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  token     String   @unique
+  expiresAt DateTime
+
+  createdAt DateTime @default(now())
+
+  @@index([token])
+  @@index([userId])
+  @@map("refresh_tokens")
 }
