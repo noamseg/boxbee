@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import {
   View,
   Text,
@@ -10,9 +10,11 @@ import {
   ScrollView,
   KeyboardAvoidingView,
   Platform,
+  ActivityIndicator,
 } from 'react-native';
 import { colors, typography, spacing, borderRadius } from '../constants/theme';
 import boxService from '../services/box.service';
+import aiService from '../services/ai.service';
 
 interface Props {
   visible: boolean;
@@ -26,11 +28,46 @@ const CreateBoxModal: React.FC<Props> = ({ visible, onClose, onBoxCreated }) => 
   const [taskName, setTaskName] = useState('');
   const [duration, setDuration] = useState<number | null>(null);
   const [isLoading, setIsLoading] = useState(false);
+  const [isEstimating, setIsEstimating] = useState(false);
+  const [aiSuggestion, setAiSuggestion] = useState<{
+    duration: number;
+    confidence: string;
+    reasoning: string;
+  } | null>(null);
 
   const handleClose = () => {
     setTaskName('');
     setDuration(null);
+    setAiSuggestion(null);
     onClose();
+  };
+
+  const handleGetAISuggestion = async () => {
+    if (!taskName.trim()) {
+      Alert.alert('Enter a task', 'Please enter a task name first');
+      return;
+    }
+
+    setIsEstimating(true);
+    try {
+      const estimation = await aiService.estimateDuration(taskName.trim());
+      setAiSuggestion({
+        duration: estimation.estimatedDuration,
+        confidence: estimation.confidence,
+        reasoning: estimation.reasoning,
+      });
+      setDuration(estimation.estimatedDuration);
+    } catch (error: any) {
+      console.error('Error getting AI suggestion:', error);
+      // Silently fail - AI is optional
+      Alert.alert(
+        'AI unavailable',
+        'Could not get AI suggestion. Please select duration manually.',
+        [{ text: 'OK' }]
+      );
+    } finally {
+      setIsEstimating(false);
+    }
   };
 
   const handleCreate = async () => {
@@ -50,6 +87,8 @@ const CreateBoxModal: React.FC<Props> = ({ visible, onClose, onBoxCreated }) => 
       await boxService.createBox({
         taskName: taskName.trim(),
         duration,
+        aiSuggested: false,
+        aiEstimated: aiSuggestion !== null,
       });
 
       handleClose();
@@ -110,7 +149,32 @@ const CreateBoxModal: React.FC<Props> = ({ visible, onClose, onBoxCreated }) => 
 
             {/* Duration Selection */}
             <View style={styles.section}>
-              <Text style={styles.label}>How long? (minutes)</Text>
+              <View style={styles.sectionHeader}>
+                <Text style={styles.label}>How long? (minutes)</Text>
+                <TouchableOpacity
+                  style={styles.aiButton}
+                  onPress={handleGetAISuggestion}
+                  disabled={isEstimating || !taskName.trim()}
+                >
+                  {isEstimating ? (
+                    <ActivityIndicator size="small" color={colors.honey} />
+                  ) : (
+                    <Text style={styles.aiButtonText}>✨ AI Suggest</Text>
+                  )}
+                </TouchableOpacity>
+              </View>
+
+              {aiSuggestion && (
+                <View style={styles.aiSuggestionCard}>
+                  <Text style={styles.aiSuggestionTitle}>
+                    AI suggests {aiSuggestion.duration} min
+                  </Text>
+                  <Text style={styles.aiSuggestionReason}>
+                    {aiSuggestion.reasoning}
+                  </Text>
+                </View>
+              )}
+
               <View style={styles.durationGrid}>
                 {SUGGESTED_DURATIONS.map((d) => (
                   <TouchableOpacity
@@ -213,10 +277,46 @@ const styles = StyleSheet.create({
   section: {
     marginBottom: spacing[6],
   },
+  sectionHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: spacing[3],
+  },
   label: {
     ...typography.bodyBold,
     color: colors.beeBlack,
+  },
+  aiButton: {
+    paddingHorizontal: spacing[3],
+    paddingVertical: spacing[2],
+    borderRadius: borderRadius.md,
+    backgroundColor: colors.honeyCream,
+    borderWidth: 1,
+    borderColor: colors.honey,
+  },
+  aiButtonText: {
+    ...typography.small,
+    color: colors.honeyDeep,
+    fontWeight: '600',
+  },
+  aiSuggestionCard: {
+    backgroundColor: colors.honeyCream,
+    borderRadius: borderRadius.md,
+    padding: spacing[3],
     marginBottom: spacing[3],
+    borderWidth: 1,
+    borderColor: colors.honey,
+  },
+  aiSuggestionTitle: {
+    ...typography.bodyBold,
+    color: colors.honeyDeep,
+    marginBottom: spacing[1],
+  },
+  aiSuggestionReason: {
+    ...typography.small,
+    color: colors.gray700,
+    fontStyle: 'italic',
   },
   input: {
     backgroundColor: colors.gray100,
