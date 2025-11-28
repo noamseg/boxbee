@@ -9,7 +9,7 @@ import {
   RefreshControl,
   Alert,
 } from 'react-native';
-import { useFocusEffect } from '@react-navigation/native';
+import { useFocusEffect, useNavigation } from '@react-navigation/native';
 import { useAuth } from '../../contexts/AuthContext';
 import { colors, typography, spacing, borderRadius } from '../../constants/theme';
 import CreateBoxModal from '../../components/CreateBoxModal';
@@ -18,6 +18,7 @@ import { Box } from '../../types/box.types';
 
 const TodayScreen: React.FC = () => {
   const { user } = useAuth();
+  const navigation = useNavigation();
   const [boxes, setBoxes] = useState<Box[]>([]);
   const [isLoading, setIsLoading] = useState(false);
   const [isModalVisible, setIsModalVisible] = useState(false);
@@ -46,12 +47,11 @@ const TodayScreen: React.FC = () => {
     loadBoxes();
   };
 
-  const handleStartBox = async (boxId: string) => {
+  const handleStartBox = async (box: Box) => {
     try {
-      await boxService.startBox(boxId);
-      loadBoxes();
-      // TODO: Navigate to focus mode screen
-      Alert.alert('Box Started', 'Focus mode will be implemented soon!');
+      const response = await boxService.startBox(box.id);
+      // Navigate to focus mode with updated box
+      (navigation as any).navigate('FocusMode', { box: response.data.box });
     } catch (error: any) {
       console.error('Error starting box:', error);
       Alert.alert('Error', 'Failed to start box');
@@ -63,7 +63,7 @@ const TodayScreen: React.FC = () => {
       style={styles.boxCard}
       onPress={() => {
         if (item.status === 'scheduled') {
-          handleStartBox(item.id);
+          handleStartBox(item);
         }
       }}
     >

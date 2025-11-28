@@ -4,7 +4,7 @@ import { createStackNavigator } from '@react-navigation/stack';
 import { useAuth } from '../contexts/AuthContext';
 import AuthNavigator from './AuthNavigator';
 import OnboardingNavigator from './OnboardingNavigator';
-import MainNavigator from './MainNavigator';
+import RootStackNavigator from './RootStackNavigator';
 import { ActivityIndicator, View, StyleSheet } from 'react-native';
 import { colors } from '../constants/theme';
 
@@ -29,7 +29,7 @@ const AppNavigator: React.FC = () => {
         ) : !hasCompletedOnboarding ? (
           <Stack.Screen name="Onboarding" component={OnboardingNavigator} />
         ) : (
-          <Stack.Screen name="Main" component={MainNavigator} />
+          <Stack.Screen name="Main" component={RootStackNavigator} />
         )}
       </Stack.Navigator>
     </NavigationContainer>
