@@ -3,6 +3,7 @@ import cors from 'cors';
 import dotenv from 'dotenv';
 import authRoutes from './routes/auth.routes';
 import emailRoutes from './routes/email.routes';
+import boxRoutes from './routes/box.routes';
 import { errorHandler } from './middleware/error.middleware';
 
 // Load environment variables
@@ -28,6 +29,7 @@ app.get('/health', (req, res) => {
 // API Routes
 app.use('/api/auth', authRoutes);
 app.use('/api/email', emailRoutes);
+app.use('/api/boxes', boxRoutes);
 
 // Error handling middleware (must be last)
 app.use(errorHandler);
