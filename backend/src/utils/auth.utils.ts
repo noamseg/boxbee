@@ -2,7 +2,7 @@ import jwt from 'jsonwebtoken';
 import bcrypt from 'bcryptjs';
 import { randomBytes } from 'crypto';
 import { JwtPayload } from '../middleware/auth.middleware';
-import prisma from './prisma';
+import { prisma } from '../config/database';
 import { AppError } from '../middleware/error.middleware';
 
 const JWT_SECRET = process.env.JWT_SECRET || 'your-secret-key';
