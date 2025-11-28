@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import {
   View,
   Text,
@@ -8,22 +8,60 @@ import {
   Alert,
   ScrollView,
   Switch,
+  ActivityIndicator,
 } from 'react-native';
+import { useFocusEffect } from '@react-navigation/native';
 import { useAuth } from '../../contexts/AuthContext';
 import { colors, typography, spacing, borderRadius } from '../../constants/theme';
+import settingsService from '../../services/settings.service';
+import { UserSettings } from '../../types/settings.types';
 
 const SettingsScreen: React.FC = () => {
   const { user, logout } = useAuth();
 
-  // Notification settings
-  const [notifyFiveMin, setNotifyFiveMin] = useState(true);
-  const [notifyCompletion, setNotifyCompletion] = useState(true);
-  const [notifyCoaching, setNotifyCoaching] = useState(false);
-  const [notifyWeekly, setNotifyWeekly] = useState(true);
+  const [settings, setSettings] = useState<UserSettings | null>(null);
+  const [isLoading, setIsLoading] = useState(true);
+  const [isSaving, setIsSaving] = useState(false);
 
-  // AI settings
-  const [aiLearning, setAiLearning] = useState(true);
-  const [aiAutoAdjust, setAiAutoAdjust] = useState(false);
+  // Load settings from backend
+  const loadSettings = async () => {
+    try {
+      const response = await settingsService.getSettings();
+      setSettings(response.data.settings);
+    } catch (error: any) {
+      console.error('Error loading settings:', error);
+      Alert.alert('Error', 'Failed to load settings');
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  useFocusEffect(
+    React.useCallback(() => {
+      loadSettings();
+    }, [])
+  );
+
+  // Update a setting
+  const updateSetting = async (updates: Partial<UserSettings>) => {
+    if (!settings) return;
+
+    // Optimistically update UI
+    setSettings({ ...settings, ...updates });
+
+    setIsSaving(true);
+    try {
+      const response = await settingsService.updateSettings(updates);
+      setSettings(response.data.settings);
+    } catch (error: any) {
+      console.error('Error updating settings:', error);
+      // Revert on error
+      await loadSettings();
+      Alert.alert('Error', 'Failed to save settings');
+    } finally {
+      setIsSaving(false);
+    }
+  };
 
   const handleLogout = () => {
     Alert.alert('Sign Out', 'Are you sure you want to sign out?', [
@@ -61,6 +99,17 @@ const SettingsScreen: React.FC = () => {
       [{ text: 'OK' }]
     );
   };
+
+  if (isLoading || !settings) {
+    return (
+      <SafeAreaView style={styles.container}>
+        <View style={styles.loadingContainer}>
+          <ActivityIndicator size="large" color={colors.honey} />
+          <Text style={styles.loadingText}>Loading settings...</Text>
+        </View>
+      </SafeAreaView>
+    );
+  }
 
   return (
     <SafeAreaView style={styles.container}>
@@ -100,10 +149,11 @@ const SettingsScreen: React.FC = () => {
               </Text>
             </View>
             <Switch
-              value={notifyFiveMin}
-              onValueChange={setNotifyFiveMin}
+              value={settings.notifyFiveMinWarning}
+              onValueChange={(value) => updateSetting({ notifyFiveMinWarning: value })}
               trackColor={{ false: colors.gray300, true: colors.honeyCream }}
-              thumbColor={notifyFiveMin ? colors.honey : colors.gray500}
+              thumbColor={settings.notifyFiveMinWarning ? colors.honey : colors.gray500}
+              disabled={isSaving}
             />
           </View>
 
@@ -115,10 +165,11 @@ const SettingsScreen: React.FC = () => {
               </Text>
             </View>
             <Switch
-              value={notifyCompletion}
-              onValueChange={setNotifyCompletion}
+              value={settings.notifyCompletion}
+              onValueChange={(value) => updateSetting({ notifyCompletion: value })}
               trackColor={{ false: colors.gray300, true: colors.honeyCream }}
-              thumbColor={notifyCompletion ? colors.honey : colors.gray500}
+              thumbColor={settings.notifyCompletion ? colors.honey : colors.gray500}
+              disabled={isSaving}
             />
           </View>
 
@@ -130,10 +181,11 @@ const SettingsScreen: React.FC = () => {
               </Text>
             </View>
             <Switch
-              value={notifyCoaching}
-              onValueChange={setNotifyCoaching}
+              value={settings.notifyCoaching}
+              onValueChange={(value) => updateSetting({ notifyCoaching: value })}
               trackColor={{ false: colors.gray300, true: colors.honeyCream }}
-              thumbColor={notifyCoaching ? colors.honey : colors.gray500}
+              thumbColor={settings.notifyCoaching ? colors.honey : colors.gray500}
+              disabled={isSaving}
             />
           </View>
 
@@ -141,14 +193,15 @@ const SettingsScreen: React.FC = () => {
             <View style={styles.settingInfo}>
               <Text style={styles.settingLabel}>Weekly report</Text>
               <Text style={styles.settingDescription}>
-                Monday at 9:00 AM
+                {settings.weeklyReportDay} at {settings.weeklyReportTime}
               </Text>
             </View>
             <Switch
-              value={notifyWeekly}
-              onValueChange={setNotifyWeekly}
+              value={settings.notifyWeeklyReport}
+              onValueChange={(value) => updateSetting({ notifyWeeklyReport: value })}
               trackColor={{ false: colors.gray300, true: colors.honeyCream }}
-              thumbColor={notifyWeekly ? colors.honey : colors.gray500}
+              thumbColor={settings.notifyWeeklyReport ? colors.honey : colors.gray500}
+              disabled={isSaving}
             />
           </View>
         </View>
@@ -165,10 +218,11 @@ const SettingsScreen: React.FC = () => {
               </Text>
             </View>
             <Switch
-              value={aiLearning}
-              onValueChange={setAiLearning}
+              value={settings.aiLearningEnabled}
+              onValueChange={(value) => updateSetting({ aiLearningEnabled: value })}
               trackColor={{ false: colors.gray300, true: colors.honeyCream }}
-              thumbColor={aiLearning ? colors.honey : colors.gray500}
+              thumbColor={settings.aiLearningEnabled ? colors.honey : colors.gray500}
+              disabled={isSaving}
             />
           </View>
 
@@ -180,21 +234,26 @@ const SettingsScreen: React.FC = () => {
               </Text>
             </View>
             <Switch
-              value={aiAutoAdjust}
-              onValueChange={setAiAutoAdjust}
+              value={settings.aiAutoAdjustTime}
+              onValueChange={(value) => updateSetting({ aiAutoAdjustTime: value })}
               trackColor={{ false: colors.gray300, true: colors.honeyCream }}
-              thumbColor={aiAutoAdjust ? colors.honey : colors.gray500}
+              thumbColor={settings.aiAutoAdjustTime ? colors.honey : colors.gray500}
+              disabled={isSaving}
             />
           </View>
 
           <TouchableOpacity style={styles.settingItem}>
             <Text style={styles.settingLabel}>Coach personality</Text>
-            <Text style={styles.settingValue}>Friendly</Text>
+            <Text style={styles.settingValue}>
+              {settings.coachPersonality.charAt(0).toUpperCase() + settings.coachPersonality.slice(1)}
+            </Text>
           </TouchableOpacity>
 
           <TouchableOpacity style={styles.settingItem}>
             <Text style={styles.settingLabel}>Coaching frequency</Text>
-            <Text style={styles.settingValue}>Often</Text>
+            <Text style={styles.settingValue}>
+              {settings.coachFrequency.charAt(0).toUpperCase() + settings.coachFrequency.slice(1)}
+            </Text>
           </TouchableOpacity>
         </View>
 
@@ -204,7 +263,9 @@ const SettingsScreen: React.FC = () => {
 
           <TouchableOpacity style={styles.settingItem}>
             <Text style={styles.settingLabel}>Theme</Text>
-            <Text style={styles.settingValue}>Light</Text>
+            <Text style={styles.settingValue}>
+              {settings.theme.charAt(0).toUpperCase() + settings.theme.slice(1)}
+            </Text>
           </TouchableOpacity>
 
           <TouchableOpacity
@@ -259,6 +320,16 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: colors.white,
+  },
+  loadingContainer: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  loadingText: {
+    ...typography.body,
+    color: colors.gray600,
+    marginTop: spacing[4],
   },
   scrollContent: {
     padding: spacing[4],
