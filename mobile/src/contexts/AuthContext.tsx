@@ -17,6 +17,7 @@ interface AuthProviderProps {
 export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   const [user, setUser] = useState<User | null>(null);
   const [token, setToken] = useState<string | null>(null);
+  const [refreshToken, setRefreshToken] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(true);
 
   // Load user from secure storage on app start
@@ -27,10 +28,12 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   const loadStoredAuth = async () => {
     try {
       const storedToken = await SecureStore.getItemAsync('auth_token');
+      const storedRefreshToken = await SecureStore.getItemAsync('refresh_token');
       const storedUser = await SecureStore.getItemAsync('user');
 
       if (storedToken && storedUser) {
         setToken(storedToken);
+        setRefreshToken(storedRefreshToken);
         setUser(JSON.parse(storedUser));
       }
     } catch (error) {
@@ -43,7 +46,11 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   const signup = async (data: SignupRequest) => {
     try {
       const response = await authService.signup(data);
-      await saveAuth(response.data.token, response.data.user);
+      await saveAuth(
+        response.data.token,
+        response.data.refreshToken,
+        response.data.user
+      );
     } catch (error: any) {
       throw new Error(error.response?.data?.error?.message || 'Signup failed');
     }
@@ -52,7 +59,11 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   const login = async (data: LoginRequest) => {
     try {
       const response = await authService.login(data);
-      await saveAuth(response.data.token, response.data.user);
+      await saveAuth(
+        response.data.token,
+        response.data.refreshToken,
+        response.data.user
+      );
     } catch (error: any) {
       throw new Error(error.response?.data?.error?.message || 'Login failed');
     }
@@ -61,8 +72,10 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   const logout = async () => {
     try {
       await SecureStore.deleteItemAsync('auth_token');
+      await SecureStore.deleteItemAsync('refresh_token');
       await SecureStore.deleteItemAsync('user');
       setToken(null);
+      setRefreshToken(null);
       setUser(null);
     } catch (error) {
       console.error('Error during logout:', error);
@@ -80,22 +93,53 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     }
   };
 
-  const saveAuth = async (authToken: string, userData: User) => {
+  const sendVerificationEmail = async () => {
+    try {
+      await authService.sendVerificationEmail();
+    } catch (error: any) {
+      throw new Error(
+        error.response?.data?.error?.message || 'Failed to send verification email'
+      );
+    }
+  };
+
+  const verifyEmail = async (verificationToken: string) => {
+    try {
+      await authService.verifyEmail(verificationToken);
+      // Refresh user to get updated emailVerified status
+      await refreshUser();
+    } catch (error: any) {
+      throw new Error(
+        error.response?.data?.error?.message || 'Email verification failed'
+      );
+    }
+  };
+
+  const saveAuth = async (
+    authToken: string,
+    authRefreshToken: string,
+    userData: User
+  ) => {
     await SecureStore.setItemAsync('auth_token', authToken);
+    await SecureStore.setItemAsync('refresh_token', authRefreshToken);
     await SecureStore.setItemAsync('user', JSON.stringify(userData));
     setToken(authToken);
+    setRefreshToken(authRefreshToken);
     setUser(userData);
   };
 
   const value: AuthContextType = {
     user,
     token,
+    refreshToken,
     isLoading,
     isAuthenticated: !!user && !!token,
     signup,
     login,
     logout,
     refreshUser,
+    sendVerificationEmail,
+    verifyEmail,
   };
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;

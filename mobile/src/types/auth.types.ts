@@ -12,6 +12,7 @@ export interface AuthResponse {
   data: {
     user: User;
     token: string;
+    refreshToken: string;
   };
 }
 
@@ -26,13 +27,24 @@ export interface LoginRequest {
   password: string;
 }
 
+export interface RefreshTokenResponse {
+  success: boolean;
+  data: {
+    token: string;
+    refreshToken: string;
+  };
+}
+
 export interface AuthContextType {
   user: User | null;
   token: string | null;
+  refreshToken: string | null;
   isLoading: boolean;
   isAuthenticated: boolean;
   signup: (data: SignupRequest) => Promise<void>;
   login: (data: LoginRequest) => Promise<void>;
   logout: () => Promise<void>;
   refreshUser: () => Promise<void>;
+  sendVerificationEmail: () => Promise<void>;
+  verifyEmail: (token: string) => Promise<void>;
 }
