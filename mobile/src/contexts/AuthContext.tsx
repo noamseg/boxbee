@@ -18,6 +18,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   const [user, setUser] = useState<User | null>(null);
   const [token, setToken] = useState<string | null>(null);
   const [refreshToken, setRefreshToken] = useState<string | null>(null);
+  const [hasCompletedOnboarding, setHasCompletedOnboarding] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
 
   // Load user from secure storage on app start
@@ -30,11 +31,13 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
       const storedToken = await SecureStore.getItemAsync('auth_token');
       const storedRefreshToken = await SecureStore.getItemAsync('refresh_token');
       const storedUser = await SecureStore.getItemAsync('user');
+      const onboardingComplete = await SecureStore.getItemAsync('onboarding_complete');
 
       if (storedToken && storedUser) {
         setToken(storedToken);
         setRefreshToken(storedRefreshToken);
         setUser(JSON.parse(storedUser));
+        setHasCompletedOnboarding(onboardingComplete === 'true');
       }
     } catch (error) {
       console.error('Error loading stored auth:', error);
@@ -74,11 +77,22 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
       await SecureStore.deleteItemAsync('auth_token');
       await SecureStore.deleteItemAsync('refresh_token');
       await SecureStore.deleteItemAsync('user');
+      await SecureStore.deleteItemAsync('onboarding_complete');
       setToken(null);
       setRefreshToken(null);
       setUser(null);
+      setHasCompletedOnboarding(false);
     } catch (error) {
       console.error('Error during logout:', error);
+    }
+  };
+
+  const completeOnboarding = async () => {
+    try {
+      await SecureStore.setItemAsync('onboarding_complete', 'true');
+      setHasCompletedOnboarding(true);
+    } catch (error) {
+      console.error('Error completing onboarding:', error);
     }
   };
 
@@ -134,16 +148,17 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     refreshToken,
     isLoading,
     isAuthenticated: !!user && !!token,
+    hasCompletedOnboarding,
     signup,
     login,
     logout,
     refreshUser,
     sendVerificationEmail,
     verifyEmail,
+    completeOnboarding,
   };
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
-};
 
 export const useAuth = (): AuthContextType => {
   const context = useContext(AuthContext);

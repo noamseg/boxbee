@@ -3,6 +3,7 @@ import { NavigationContainer } from '@react-navigation/native';
 import { createStackNavigator } from '@react-navigation/stack';
 import { useAuth } from '../contexts/AuthContext';
 import AuthNavigator from './AuthNavigator';
+import OnboardingNavigator from './OnboardingNavigator';
 import MainNavigator from './MainNavigator';
 import { ActivityIndicator, View, StyleSheet } from 'react-native';
 import { colors } from '../constants/theme';
@@ -10,7 +11,7 @@ import { colors } from '../constants/theme';
 const Stack = createStackNavigator();
 
 const AppNavigator: React.FC = () => {
-  const { isAuthenticated, isLoading } = useAuth();
+  const { isAuthenticated, hasCompletedOnboarding, isLoading } = useAuth();
 
   if (isLoading) {
     return (
@@ -25,6 +26,8 @@ const AppNavigator: React.FC = () => {
       <Stack.Navigator screenOptions={{ headerShown: false }}>
         {!isAuthenticated ? (
           <Stack.Screen name="Auth" component={AuthNavigator} />
+        ) : !hasCompletedOnboarding ? (
+          <Stack.Screen name="Onboarding" component={OnboardingNavigator} />
         ) : (
           <Stack.Screen name="Main" component={MainNavigator} />
         )}

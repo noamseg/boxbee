@@ -41,10 +41,12 @@ export interface AuthContextType {
   refreshToken: string | null;
   isLoading: boolean;
   isAuthenticated: boolean;
+  hasCompletedOnboarding: boolean;
   signup: (data: SignupRequest) => Promise<void>;
   login: (data: LoginRequest) => Promise<void>;
   logout: () => Promise<void>;
   refreshUser: () => Promise<void>;
   sendVerificationEmail: () => Promise<void>;
   verifyEmail: (token: string) => Promise<void>;
+  completeOnboarding: () => Promise<void>;
 }
