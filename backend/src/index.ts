@@ -6,6 +6,7 @@ import emailRoutes from './routes/email.routes';
 import boxRoutes from './routes/box.routes';
 import aiRoutes from './routes/ai.routes';
 import insightsRoutes from './routes/insights.routes';
+import settingsRoutes from './routes/settings.routes';
 import { errorHandler } from './middleware/error.middleware';
 
 // Load environment variables
@@ -34,6 +35,7 @@ app.use('/api/email', emailRoutes);
 app.use('/api/boxes', boxRoutes);
 app.use('/api/ai', aiRoutes);
 app.use('/api/insights', insightsRoutes);
+app.use('/api/settings', settingsRoutes);
 
 // Error handling middleware (must be last)
 app.use(errorHandler);
