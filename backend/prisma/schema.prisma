@@ -1,0 +1,135 @@
+// BoxBee Database Schema
+// AI-native time-boxing productivity app
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+// User Authentication & Profile
+model User {
+  id            String    @id @default(cuid())
+  email         String    @unique
+  password      String?   // Nullable for social auth users
+  name          String?
+
+  // Social Auth
+  googleId      String?   @unique
+  appleId       String?   @unique
+
+  // Email Verification
+  emailVerified Boolean   @default(false)
+
+  // Timestamps
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+
+  // Relations
+  boxes         Box[]
+  settings      UserSettings?
+  insights      Insight[]
+
+  @@map("users")
+}
+
+// User Settings & Preferences
+model UserSettings {
+  id                      String   @id @default(cuid())
+  userId                  String   @unique
+  user                    User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  // Notification Preferences
+  notifyFiveMinWarning    Boolean  @default(true)
+  notifyCompletion        Boolean  @default(true)
+  notifyCoaching          Boolean  @default(false)
+  notifyMorningPlanning   Boolean  @default(false)
+  morningPlanningTime     String?  // HH:MM format
+  notifyEveningReflection Boolean  @default(false)
+  notifyWeeklyReport      Boolean  @default(true)
+  weeklyReportDay         String   @default("Monday")
+  weeklyReportTime        String   @default("09:00")
+
+  // Quiet Hours
+  quietHoursEnabled       Boolean  @default(false)
+  quietHoursStart         String?  // HH:MM format
+  quietHoursEnd           String?  // HH:MM format
+
+  // AI Coach Settings
+  coachPersonality        String   @default("friendly") // friendly, professional, minimal
+  coachFrequency          String   @default("often")    // lots, often, some, rare
+  aiLearningEnabled       Boolean  @default(true)
+  aiAutoAdjustTime        Boolean  @default(false)
+
+  // Appearance
+  theme                   String   @default("light")    // light, dark, auto
+
+  // Timestamps
+  createdAt               DateTime @default(now())
+  updatedAt               DateTime @updatedAt
+
+  @@map("user_settings")
+}
+
+// Time-Boxed Tasks (Boxes)
+model Box {
+  id                String    @id @default(cuid())
+  userId            String
+  user              User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  // Task Info
+  taskName          String
+  category          String?   // email, writing, coding, meeting, creative, etc.
+  duration          Int       // Planned duration in minutes
+
+  // Scheduling
+  scheduledFor      DateTime?
+  startedAt         DateTime?
+  completedAt       DateTime?
+
+  // Status
+  status            String    @default("scheduled") // scheduled, active, paused, completed, cancelled
+
+  // Completion Data
+  actualDuration    Int?      // Actual duration in minutes
+  focusQuality      String?   // great, okay, rough
+  completionStatus  String?   // completed, partial, skipped
+  notes             String?
+
+  // AI Metadata
+  aiSuggested       Boolean   @default(false)
+  aiEstimated       Boolean   @default(false)
+
+  // Timestamps
+  createdAt         DateTime  @default(now())
+  updatedAt         DateTime  @updatedAt
+
+  @@index([userId, status])
+  @@index([userId, scheduledFor])
+  @@map("boxes")
+}
+
+// AI-Generated Insights
+model Insight {
+  id            String    @id @default(cuid())
+  userId        String
+  user          User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  // Insight Data
+  type          String    // time_estimation, pattern_recognition, productivity_peak, weekly_summary
+  title         String
+  content       String    // JSON string with insight data
+
+  // Metadata
+  acknowledged  Boolean   @default(false)
+  helpful       Boolean?  // User feedback
+
+  // Timestamps
+  createdAt     DateTime  @default(now())
+
+  @@index([userId, type])
+  @@index([userId, createdAt])
+  @@map("insights")
+}
