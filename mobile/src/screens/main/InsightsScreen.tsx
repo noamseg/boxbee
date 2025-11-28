@@ -13,6 +13,7 @@ import { useFocusEffect } from '@react-navigation/native';
 import { colors, typography, spacing, borderRadius } from '../../constants/theme';
 import insightsService from '../../services/insights.service';
 import { WeeklyStats } from '../../types/insights.types';
+import { handleError, showErrorAlert } from '../../utils/errorHandler';
 
 const InsightsScreen: React.FC = () => {
   const [stats, setStats] = useState<WeeklyStats | null>(null);
@@ -32,8 +33,8 @@ const InsightsScreen: React.FC = () => {
       setStats(weeklyStats);
       setInsights(aiInsights);
     } catch (error: any) {
-      console.error('Error loading insights:', error);
-      Alert.alert('Error', 'Failed to load insights');
+      handleError(error, { context: 'InsightsScreen.loadData' });
+      showErrorAlert(error, 'Failed to Load Insights');
     } finally {
       setIsLoading(false);
       setIsRefreshing(false);

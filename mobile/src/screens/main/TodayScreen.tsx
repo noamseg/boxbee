@@ -15,6 +15,7 @@ import { colors, typography, spacing, borderRadius } from '../../constants/theme
 import CreateBoxModal from '../../components/CreateBoxModal';
 import boxService from '../../services/box.service';
 import { Box } from '../../types/box.types';
+import { handleError, showErrorAlert } from '../../utils/errorHandler';
 
 const TodayScreen: React.FC = () => {
   const { user } = useAuth();
@@ -29,8 +30,8 @@ const TodayScreen: React.FC = () => {
       const response = await boxService.getTodayBoxes();
       setBoxes(response.data.boxes);
     } catch (error: any) {
-      console.error('Error loading boxes:', error);
-      Alert.alert('Error', 'Failed to load boxes');
+      handleError(error, { context: 'TodayScreen.loadBoxes' });
+      showErrorAlert(error, 'Failed to Load Boxes');
     } finally {
       setIsLoading(false);
     }
@@ -53,8 +54,8 @@ const TodayScreen: React.FC = () => {
       // Navigate to focus mode with updated box
       (navigation as any).navigate('FocusMode', { box: response.data.box });
     } catch (error: any) {
-      console.error('Error starting box:', error);
-      Alert.alert('Error', 'Failed to start box');
+      handleError(error, { context: 'TodayScreen.handleStartBox' });
+      showErrorAlert(error, 'Failed to Start Box');
     }
   };
 

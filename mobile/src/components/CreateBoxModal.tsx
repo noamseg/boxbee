@@ -15,6 +15,7 @@ import {
 import { colors, typography, spacing, borderRadius } from '../constants/theme';
 import boxService from '../services/box.service';
 import aiService from '../services/ai.service';
+import { handleError, showErrorAlert } from '../utils/errorHandler';
 
 interface Props {
   visible: boolean;
@@ -58,10 +59,10 @@ const CreateBoxModal: React.FC<Props> = ({ visible, onClose, onBoxCreated }) => 
       });
       setDuration(estimation.estimatedDuration);
     } catch (error: any) {
-      console.error('Error getting AI suggestion:', error);
-      // Silently fail - AI is optional
+      handleError(error, { context: 'CreateBoxModal.handleGetAISuggestion' });
+      // Silently fail for AI - it's optional
       Alert.alert(
-        'AI unavailable',
+        'AI Unavailable',
         'Could not get AI suggestion. Please select duration manually.',
         [{ text: 'OK' }]
       );
@@ -94,11 +95,8 @@ const CreateBoxModal: React.FC<Props> = ({ visible, onClose, onBoxCreated }) => 
       handleClose();
       onBoxCreated?.();
     } catch (error: any) {
-      console.error('Error creating box:', error);
-      Alert.alert(
-        'Error',
-        error.response?.data?.error?.message || 'Failed to create box'
-      );
+      handleError(error, { context: 'CreateBoxModal.handleCreate' });
+      showErrorAlert(error, 'Failed to Create Box');
     } finally {
       setIsLoading(false);
     }
