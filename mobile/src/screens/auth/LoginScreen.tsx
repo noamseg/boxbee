@@ -27,10 +27,12 @@ interface Props {
 }
 
 const LoginScreen: React.FC<Props> = ({ navigation }) => {
-  const { login } = useAuth();
+  const { login, loginWithGoogle, loginWithApple } = useAuth();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [isLoading, setIsLoading] = useState(false);
+  const [isGoogleLoading, setIsGoogleLoading] = useState(false);
+  const [isAppleLoading, setIsAppleLoading] = useState(false);
 
   const handleLogin = async () => {
     if (!email || !password) {
@@ -47,6 +49,30 @@ const LoginScreen: React.FC<Props> = ({ navigation }) => {
       Alert.alert('Login Failed', error.message);
     } finally {
       setIsLoading(false);
+    }
+  };
+
+  const handleGoogleLogin = async () => {
+    setIsGoogleLoading(true);
+    try {
+      await loginWithGoogle();
+      // Navigation will happen automatically via AuthContext
+    } catch (error: any) {
+      Alert.alert('Google Sign-In Failed', error.message);
+    } finally {
+      setIsGoogleLoading(false);
+    }
+  };
+
+  const handleAppleLogin = async () => {
+    setIsAppleLoading(true);
+    try {
+      await loginWithApple();
+      // Navigation will happen automatically via AuthContext
+    } catch (error: any) {
+      Alert.alert('Apple Sign-In Failed', error.message);
+    } finally {
+      setIsAppleLoading(false);
     }
   };
 
@@ -112,6 +138,46 @@ const LoginScreen: React.FC<Props> = ({ navigation }) => {
                 <Text style={styles.primaryButtonText}>Sign In →</Text>
               )}
             </TouchableOpacity>
+
+            {/* Social Login Divider */}
+            <View style={styles.dividerContainer}>
+              <View style={styles.dividerLine} />
+              <Text style={styles.dividerText}>OR</Text>
+              <View style={styles.dividerLine} />
+            </View>
+
+            {/* Social Login Buttons */}
+            <View style={styles.socialButtons}>
+              {/* Google Sign In */}
+              <TouchableOpacity
+                style={[styles.socialButton, isGoogleLoading && styles.buttonDisabled]}
+                onPress={handleGoogleLogin}
+                disabled={isGoogleLoading}
+              >
+                {isGoogleLoading ? (
+                  <ActivityIndicator color={colors.beeBlack} />
+                ) : (
+                  <Text style={styles.socialButtonText}>Continue with Google</Text>
+                )}
+              </TouchableOpacity>
+
+              {/* Apple Sign In (iOS only) */}
+              {Platform.OS === 'ios' && (
+                <TouchableOpacity
+                  style={[styles.socialButton, styles.appleButton, isAppleLoading && styles.buttonDisabled]}
+                  onPress={handleAppleLogin}
+                  disabled={isAppleLoading}
+                >
+                  {isAppleLoading ? (
+                    <ActivityIndicator color={colors.white} />
+                  ) : (
+                    <Text style={[styles.socialButtonText, styles.appleButtonText]}>
+                      Continue with Apple
+                    </Text>
+                  )}
+                </TouchableOpacity>
+              )}
+            </View>
 
             <View style={styles.signupPrompt}>
               <Text style={styles.signupPromptText}>Don't have an account?</Text>
@@ -207,6 +273,43 @@ const styles = StyleSheet.create({
   signupLink: {
     ...typography.bodyBold,
     color: colors.honeyDeep,
+  },
+  dividerContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginVertical: spacing[6],
+  },
+  dividerLine: {
+    flex: 1,
+    height: 1,
+    backgroundColor: colors.gray300,
+  },
+  dividerText: {
+    ...typography.body,
+    color: colors.gray600,
+    marginHorizontal: spacing[3],
+  },
+  socialButtons: {
+    gap: spacing[3],
+  },
+  socialButton: {
+    backgroundColor: colors.white,
+    borderWidth: 1,
+    borderColor: colors.gray300,
+    paddingVertical: spacing[4],
+    borderRadius: borderRadius.lg,
+    alignItems: 'center',
+  },
+  socialButtonText: {
+    ...typography.bodyBold,
+    color: colors.beeBlack,
+  },
+  appleButton: {
+    backgroundColor: colors.beeBlack,
+    borderColor: colors.beeBlack,
+  },
+  appleButtonText: {
+    color: colors.white,
   },
 });
 

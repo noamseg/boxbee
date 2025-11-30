@@ -1,6 +1,7 @@
-import React, { createContext, useState, useContext, useEffect, ReactNode } from 'react';
+import React, { createContext, useState, useContext, useEffect, useMemo, ReactNode } from 'react';
 import * as SecureStore from 'expo-secure-store';
 import authService from '../services/auth.service';
+import oauthService from '../services/oauth.service';
 import {
   User,
   AuthContextType,
@@ -18,8 +19,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   const [user, setUser] = useState<User | null>(null);
   const [token, setToken] = useState<string | null>(null);
   const [refreshToken, setRefreshToken] = useState<string | null>(null);
-  const [hasCompletedOnboarding, setHasCompletedOnboarding] = useState(false);
-  const [isLoading, setIsLoading] = useState(true);
+  const [isLoading, setIsLoading] = useState<boolean>(true);
 
   // Load user from secure storage on app start
   useEffect(() => {
@@ -31,13 +31,11 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
       const storedToken = await SecureStore.getItemAsync('auth_token');
       const storedRefreshToken = await SecureStore.getItemAsync('refresh_token');
       const storedUser = await SecureStore.getItemAsync('user');
-      const onboardingComplete = await SecureStore.getItemAsync('onboarding_complete');
 
       if (storedToken && storedUser) {
         setToken(storedToken);
         setRefreshToken(storedRefreshToken);
         setUser(JSON.parse(storedUser));
-        setHasCompletedOnboarding(onboardingComplete === 'true');
       }
     } catch (error) {
       console.error('Error loading stored auth:', error);
@@ -72,16 +70,40 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     }
   };
 
+  const loginWithGoogle = async () => {
+    try {
+      const response = await oauthService.signInWithGoogle();
+      await saveAuth(
+        response.data.token,
+        response.data.refreshToken,
+        response.data.user
+      );
+    } catch (error: any) {
+      throw new Error(error.message || 'Google sign-in failed');
+    }
+  };
+
+  const loginWithApple = async () => {
+    try {
+      const response = await oauthService.signInWithApple();
+      await saveAuth(
+        response.data.token,
+        response.data.refreshToken,
+        response.data.user
+      );
+    } catch (error: any) {
+      throw new Error(error.message || 'Apple sign-in failed');
+    }
+  };
+
   const logout = async () => {
     try {
       await SecureStore.deleteItemAsync('auth_token');
       await SecureStore.deleteItemAsync('refresh_token');
       await SecureStore.deleteItemAsync('user');
-      await SecureStore.deleteItemAsync('onboarding_complete');
       setToken(null);
       setRefreshToken(null);
       setUser(null);
-      setHasCompletedOnboarding(false);
     } catch (error) {
       console.error('Error during logout:', error);
     }
@@ -89,10 +111,25 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
 
   const completeOnboarding = async () => {
     try {
-      await SecureStore.setItemAsync('onboarding_complete', 'true');
-      setHasCompletedOnboarding(true);
+      const response = await authService.completeOnboarding();
+      setUser(response.data.user);
+      await SecureStore.setItemAsync('user', JSON.stringify(response.data.user));
     } catch (error) {
       console.error('Error completing onboarding:', error);
+      throw error;
+    }
+  };
+
+  const resetOnboarding = async () => {
+    try {
+      // For testing purposes - resets onboarding status locally
+      if (user) {
+        const updatedUser = { ...user, onboardingCompleted: false };
+        setUser(updatedUser);
+        await SecureStore.setItemAsync('user', JSON.stringify(updatedUser));
+      }
+    } catch (error) {
+      console.error('Error resetting onboarding:', error);
     }
   };
 
@@ -142,21 +179,24 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     setUser(userData);
   };
 
-  const value: AuthContextType = {
+  const value: AuthContextType = useMemo(() => ({
     user,
     token,
     refreshToken,
-    isLoading,
-    isAuthenticated: !!user && !!token,
-    hasCompletedOnboarding,
+    isLoading: isLoading === true,
+    isAuthenticated: !!(user && token),
+    hasCompletedOnboarding: user?.onboardingCompleted === true,
     signup,
     login,
+    loginWithGoogle,
+    loginWithApple,
     logout,
     refreshUser,
     sendVerificationEmail,
     verifyEmail,
     completeOnboarding,
-  };
+    resetOnboarding,
+  }), [user, token, refreshToken, isLoading]);
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
 };

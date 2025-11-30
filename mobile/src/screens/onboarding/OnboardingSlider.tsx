@@ -36,7 +36,7 @@ const slides = [
     id: 3,
     icon: '📊',
     title: 'Track your progress',
-    description: 'See your weekly progress and get insights on when you're most productive.',
+    description: 'See your weekly progress and get insights on when you\'re most productive.',
   },
 ];
 

@@ -10,10 +10,12 @@ import {
   KeyboardAvoidingView,
   Platform,
   ScrollView,
+  ActivityIndicator,
 } from 'react-native';
 import { StackNavigationProp } from '@react-navigation/stack';
 import { useAuth } from '../../contexts/AuthContext';
 import { colors, typography, spacing, borderRadius } from '../../constants/theme';
+import boxService from '../../services/box.service';
 
 interface Props {
   navigation: StackNavigationProp<any>;
@@ -26,6 +28,7 @@ const FirstBoxTutorial: React.FC<Props> = ({ navigation }) => {
   const [step, setStep] = useState(1); // 1: task name, 2: duration, 3: confirmation
   const [taskName, setTaskName] = useState('');
   const [selectedDuration, setSelectedDuration] = useState<number | null>(null);
+  const [isCreatingBox, setIsCreatingBox] = useState(false);
 
   const handleNext = async () => {
     if (step === 1) {
@@ -41,9 +44,28 @@ const FirstBoxTutorial: React.FC<Props> = ({ navigation }) => {
       }
       setStep(3);
     } else if (step === 3) {
-      // Tutorial complete - mark onboarding as done
-      await completeOnboarding();
-      // Navigation to Main will happen automatically via AppNavigator
+      // Create the box before completing onboarding
+      try {
+        setIsCreatingBox(true);
+        await boxService.createBox({
+          taskName: taskName.trim(),
+          duration: selectedDuration!,
+          scheduledFor: new Date().toISOString(),
+        });
+
+        // Mark onboarding as complete
+        await completeOnboarding();
+        // Navigation to Main will happen automatically via AppNavigator
+      } catch (error: any) {
+        console.error('Failed to create first box:', error);
+        Alert.alert(
+          'Oops!',
+          'Could not create your first box. Please try again.',
+          [{ text: 'OK' }]
+        );
+      } finally {
+        setIsCreatingBox(false);
+      }
     }
   };
 
@@ -178,10 +200,15 @@ const FirstBoxTutorial: React.FC<Props> = ({ navigation }) => {
             <TouchableOpacity
               style={[styles.nextButton, step > 1 && styles.nextButtonExpanded]}
               onPress={handleNext}
+              disabled={isCreatingBox}
             >
-              <Text style={styles.nextButtonText}>
-                {step === 3 ? 'Start Focus →' : 'Next →'}
-              </Text>
+              {isCreatingBox ? (
+                <ActivityIndicator color={colors.white} />
+              ) : (
+                <Text style={styles.nextButtonText}>
+                  {step === 3 ? 'Start Focus →' : 'Next →'}
+                </Text>
+              )}
             </TouchableOpacity>
           </View>
         </ScrollView>

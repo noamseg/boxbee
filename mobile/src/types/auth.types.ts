@@ -3,6 +3,7 @@ export interface User {
   email: string;
   name?: string;
   emailVerified: boolean;
+  onboardingCompleted: boolean;
   createdAt: string;
   updatedAt?: string;
 }
@@ -44,9 +45,12 @@ export interface AuthContextType {
   hasCompletedOnboarding: boolean;
   signup: (data: SignupRequest) => Promise<void>;
   login: (data: LoginRequest) => Promise<void>;
+  loginWithGoogle: () => Promise<void>;
+  loginWithApple: () => Promise<void>;
   logout: () => Promise<void>;
   refreshUser: () => Promise<void>;
   sendVerificationEmail: () => Promise<void>;
   verifyEmail: (token: string) => Promise<void>;
   completeOnboarding: () => Promise<void>;
+  resetOnboarding: () => Promise<void>;
 }

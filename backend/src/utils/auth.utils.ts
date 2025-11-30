@@ -13,6 +13,7 @@ const REFRESH_TOKEN_EXPIRES_DAYS = 30;
  * Generate JWT access token
  */
 export const generateToken = (payload: JwtPayload): string => {
+  // @ts-ignore - expiresIn type incompatibility with string literal
   return jwt.sign(payload, JWT_SECRET, {
     expiresIn: JWT_EXPIRES_IN
   });

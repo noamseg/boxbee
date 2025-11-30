@@ -56,6 +56,13 @@ class AuthService {
   async resendVerificationEmail(): Promise<{ success: boolean; message: string }> {
     return apiService.post('/email/resend-verification');
   }
+
+  /**
+   * Complete onboarding
+   */
+  async completeOnboarding(): Promise<{ success: boolean; data: { user: User } }> {
+    return apiService.post('/auth/complete-onboarding');
+  }
 }
 
 export default new AuthService();

@@ -6,8 +6,12 @@ export const prisma = new PrismaClient({
 });
 
 // Handle shutdown gracefully
-process.on('beforeExit', async () => {
+const cleanup = async () => {
   await prisma.$disconnect();
-});
+};
+
+process.on('beforeExit', cleanup);
+process.on('SIGINT', cleanup);
+process.on('SIGTERM', cleanup);
 
 export default prisma;

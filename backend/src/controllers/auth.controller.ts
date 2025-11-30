@@ -9,6 +9,7 @@ import {
   verifyRefreshToken,
 } from '../utils/auth.utils';
 import { AppError } from '../middleware/error.middleware';
+import oauthService from '../services/oauth.service';
 
 /**
  * Register a new user
@@ -52,6 +53,7 @@ export const signup = async (
         email: true,
         name: true,
         emailVerified: true,
+        onboardingCompleted: true,
         createdAt: true
       }
     });
@@ -136,6 +138,7 @@ export const login = async (
           email: user.email,
           name: user.name,
           emailVerified: user.emailVerified,
+          onboardingCompleted: user.onboardingCompleted,
           createdAt: user.createdAt
         },
         token: accessToken,
@@ -168,6 +171,7 @@ export const getMe = async (
         email: true,
         name: true,
         emailVerified: true,
+        onboardingCompleted: true,
         createdAt: true,
         updatedAt: true
       }
@@ -213,6 +217,7 @@ export const refreshAccessToken = async (
         email: true,
         name: true,
         emailVerified: true,
+        onboardingCompleted: true,
       },
     });
 
@@ -235,6 +240,214 @@ export const refreshAccessToken = async (
         token: newAccessToken,
         refreshToken: newRefreshToken,
       },
+    });
+  } catch (error) {
+    next(error);
+  }
+};
+
+/**
+ * Authenticate with Google
+ * POST /api/auth/google
+ */
+export const googleAuth = async (
+  req: Request,
+  res: Response,
+  next: NextFunction
+) => {
+  try {
+    const { idToken, name } = req.body;
+
+    if (!idToken) {
+      throw new AppError('Google ID token is required', 400);
+    }
+
+    // Authenticate or create user
+    const user = await oauthService.authenticateWithGoogle(idToken, { name });
+
+    // Generate JWT tokens
+    const accessToken = generateToken({
+      userId: user.id,
+      email: user.email,
+    });
+
+    const refreshToken = await generateRefreshToken(user.id);
+
+    res.json({
+      success: true,
+      data: {
+        user: {
+          id: user.id,
+          email: user.email,
+          name: user.name,
+          emailVerified: user.emailVerified,
+          onboardingCompleted: user.onboardingCompleted,
+          createdAt: user.createdAt,
+        },
+        token: accessToken,
+        refreshToken,
+      },
+    });
+  } catch (error) {
+    next(error);
+  }
+};
+
+/**
+ * Authenticate with Apple
+ * POST /api/auth/apple
+ */
+export const appleAuth = async (
+  req: Request,
+  res: Response,
+  next: NextFunction
+) => {
+  try {
+    const { idToken, name } = req.body;
+
+    if (!idToken) {
+      throw new AppError('Apple ID token is required', 400);
+    }
+
+    // Authenticate or create user
+    const user = await oauthService.authenticateWithApple(idToken, { name });
+
+    // Generate JWT tokens
+    const accessToken = generateToken({
+      userId: user.id,
+      email: user.email,
+    });
+
+    const refreshToken = await generateRefreshToken(user.id);
+
+    res.json({
+      success: true,
+      data: {
+        user: {
+          id: user.id,
+          email: user.email,
+          name: user.name,
+          emailVerified: user.emailVerified,
+          onboardingCompleted: user.onboardingCompleted,
+          createdAt: user.createdAt,
+        },
+        token: accessToken,
+        refreshToken,
+      },
+    });
+  } catch (error) {
+    next(error);
+  }
+};
+
+/**
+ * Link Google account to existing user
+ * POST /api/auth/link/google
+ */
+export const linkGoogle = async (
+  req: Request,
+  res: Response,
+  next: NextFunction
+) => {
+  try {
+    if (!req.user) {
+      throw new AppError('Not authenticated', 401);
+    }
+
+    const { idToken } = req.body;
+
+    if (!idToken) {
+      throw new AppError('Google ID token is required', 400);
+    }
+
+    const user = await oauthService.linkGoogleAccount(req.user.userId, idToken);
+
+    res.json({
+      success: true,
+      data: {
+        user: {
+          id: user.id,
+          email: user.email,
+          name: user.name,
+          emailVerified: user.emailVerified,
+          onboardingCompleted: user.onboardingCompleted,
+        },
+      },
+    });
+  } catch (error) {
+    next(error);
+  }
+};
+
+/**
+ * Link Apple account to existing user
+ * POST /api/auth/link/apple
+ */
+export const linkApple = async (
+  req: Request,
+  res: Response,
+  next: NextFunction
+) => {
+  try {
+    if (!req.user) {
+      throw new AppError('Not authenticated', 401);
+    }
+
+    const { idToken } = req.body;
+
+    if (!idToken) {
+      throw new AppError('Apple ID token is required', 400);
+    }
+
+    const user = await oauthService.linkAppleAccount(req.user.userId, idToken);
+
+    res.json({
+      success: true,
+      data: {
+        user: {
+          id: user.id,
+          email: user.email,
+          name: user.name,
+          emailVerified: user.emailVerified,
+          onboardingCompleted: user.onboardingCompleted,
+        },
+      },
+    });
+  } catch (error) {
+    next(error);
+  }
+};
+
+/**
+ * Complete onboarding
+ * POST /api/auth/complete-onboarding
+ */
+export const completeOnboarding = async (
+  req: Request,
+  res: Response,
+  next: NextFunction
+) => {
+  try {
+    if (!req.user) {
+      throw new AppError('Not authenticated', 401);
+    }
+
+    const user = await prisma.user.update({
+      where: { id: req.user.userId },
+      data: { onboardingCompleted: true },
+      select: {
+        id: true,
+        email: true,
+        name: true,
+        emailVerified: true,
+        onboardingCompleted: true,
+        createdAt: true,
+      },
+    });
+
+    res.json({
+      success: true,
+      data: { user },
     });
   } catch (error) {
     next(error);

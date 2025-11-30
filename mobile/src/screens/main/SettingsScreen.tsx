@@ -17,7 +17,7 @@ import settingsService from '../../services/settings.service';
 import { UserSettings } from '../../types/settings.types';
 
 const SettingsScreen: React.FC = () => {
-  const { user, logout } = useAuth();
+  const { user, logout, resetOnboarding } = useAuth();
 
   const [settings, setSettings] = useState<UserSettings | null>(null);
   const [isLoading, setIsLoading] = useState(true);
@@ -97,6 +97,23 @@ const SettingsScreen: React.FC = () => {
       'About BoxBee',
       'BoxBee is an AI-native time-boxing productivity app.\n\nVersion 1.0.0\nBuilt with React Native & OpenAI\n\n© 2024 BoxBee',
       [{ text: 'OK' }]
+    );
+  };
+
+  const handleResetOnboarding = () => {
+    Alert.alert(
+      'Reset Onboarding',
+      'This will show the onboarding tutorial again. Your account and data will not be affected.',
+      [
+        { text: 'Cancel', style: 'cancel' },
+        {
+          text: 'Reset',
+          onPress: async () => {
+            await resetOnboarding();
+            Alert.alert('Done', 'Onboarding has been reset. Restart the app to see the tutorial.');
+          },
+        },
+      ]
     );
   };
 
@@ -285,6 +302,14 @@ const SettingsScreen: React.FC = () => {
         {/* Account Actions */}
         <View style={styles.section}>
           <Text style={styles.sectionTitle}>👤 Account</Text>
+
+          <TouchableOpacity
+            style={styles.settingItem}
+            onPress={handleResetOnboarding}
+          >
+            <Text style={styles.settingLabel}>Reset onboarding tutorial</Text>
+            <Text style={styles.settingArrow}>→</Text>
+          </TouchableOpacity>
 
           <TouchableOpacity
             style={styles.settingItem}

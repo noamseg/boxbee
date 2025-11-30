@@ -1,6 +1,16 @@
 import { Router } from 'express';
 import { body } from 'express-validator';
-import { signup, login, getMe, refreshAccessToken } from '../controllers/auth.controller';
+import {
+  signup,
+  login,
+  getMe,
+  refreshAccessToken,
+  googleAuth,
+  appleAuth,
+  linkGoogle,
+  linkApple,
+  completeOnboarding
+} from '../controllers/auth.controller';
 import { authenticate } from '../middleware/auth.middleware';
 
 const router = Router();
@@ -67,5 +77,80 @@ router.post(
   [body('refreshToken').notEmpty().withMessage('Refresh token is required')],
   refreshAccessToken
 );
+
+/**
+ * @route   POST /api/auth/google
+ * @desc    Authenticate with Google
+ * @access  Public
+ */
+router.post(
+  '/google',
+  [
+    body('idToken')
+      .notEmpty()
+      .withMessage('Google ID token is required'),
+    body('name')
+      .optional()
+      .trim()
+  ],
+  googleAuth
+);
+
+/**
+ * @route   POST /api/auth/apple
+ * @desc    Authenticate with Apple
+ * @access  Public
+ */
+router.post(
+  '/apple',
+  [
+    body('idToken')
+      .notEmpty()
+      .withMessage('Apple ID token is required'),
+    body('name')
+      .optional()
+      .trim()
+  ],
+  appleAuth
+);
+
+/**
+ * @route   POST /api/auth/link/google
+ * @desc    Link Google account to existing user
+ * @access  Private
+ */
+router.post(
+  '/link/google',
+  authenticate,
+  [
+    body('idToken')
+      .notEmpty()
+      .withMessage('Google ID token is required')
+  ],
+  linkGoogle
+);
+
+/**
+ * @route   POST /api/auth/link/apple
+ * @desc    Link Apple account to existing user
+ * @access  Private
+ */
+router.post(
+  '/link/apple',
+  authenticate,
+  [
+    body('idToken')
+      .notEmpty()
+      .withMessage('Apple ID token is required')
+  ],
+  linkApple
+);
+
+/**
+ * @route   POST /api/auth/complete-onboarding
+ * @desc    Mark user onboarding as complete
+ * @access  Private
+ */
+router.post('/complete-onboarding', authenticate, completeOnboarding);
 
 export default router;

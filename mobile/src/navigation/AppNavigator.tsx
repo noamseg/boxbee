@@ -11,9 +11,14 @@ import { colors } from '../constants/theme';
 const Stack = createStackNavigator();
 
 const AppNavigator: React.FC = () => {
-  const { isAuthenticated, hasCompletedOnboarding, isLoading } = useAuth();
+  const auth = useAuth();
 
-  if (isLoading) {
+  // Explicitly convert to booleans to avoid JSI type errors
+  const isLoading = Boolean(auth.isLoading);
+  const isAuthenticated = Boolean(auth.isAuthenticated);
+  const hasCompletedOnboarding = Boolean(auth.hasCompletedOnboarding);
+
+  if (isLoading === true) {
     return (
       <View style={styles.loadingContainer}>
         <ActivityIndicator size="large" color={colors.honey} />
@@ -24,9 +29,9 @@ const AppNavigator: React.FC = () => {
   return (
     <NavigationContainer>
       <Stack.Navigator screenOptions={{ headerShown: false }}>
-        {!isAuthenticated ? (
+        {isAuthenticated === false ? (
           <Stack.Screen name="Auth" component={AuthNavigator} />
-        ) : !hasCompletedOnboarding ? (
+        ) : hasCompletedOnboarding === false ? (
           <Stack.Screen name="Onboarding" component={OnboardingNavigator} />
         ) : (
           <Stack.Screen name="Main" component={RootStackNavigator} />

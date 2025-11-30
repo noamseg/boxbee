@@ -40,6 +40,7 @@ export const authenticate = async (
 
     // Attach user info to request
     req.user = decoded;
+    (req as any).userId = decoded.userId; // Also set userId convenience property
 
     next();
   } catch (error) {

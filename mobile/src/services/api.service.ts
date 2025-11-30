@@ -3,7 +3,7 @@ import * as SecureStore from 'expo-secure-store';
 
 // API Configuration
 const API_URL = __DEV__
-  ? 'http://localhost:3000/api'
+  ? 'http://192.168.7.46:3000/api' // For physical device testing - use Mac's local IP
   : 'https://api.boxbee.app/api'; // Update with production URL
 
 class ApiService {
